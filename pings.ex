@@ -6,8 +6,10 @@ defmodule Funcs do
   def ping do
     receive do
       {remitente, c, u} ->  IO.puts "Me llega de #{inspect remitente} para #{u}"
-                            System.cmd("ping", ["-c", "#{c}", u])
-                            send remitente, "Termine con #{u}"
+                            case System.cmd("ping", ["-c", "#{c}", u]) do
+                              {_output, 0} -> send remitente, "OK: Termine con #{u}"
+                              {_output, 1} -> send remitente, "ERROR: Termine con #{u}"
+                            end
     end
   end
 
@@ -23,6 +25,7 @@ defmodule Funcs do
         else
           recibir tope - 1
         end
+
     end
 
   end
@@ -31,17 +34,24 @@ end
 
 
 
-#lista = ["www.google.com.ar", "www.yahoo.com.ar"]
+lista = ["www.amazon.com", "www.google.com.ar", "www.yahoo.com.ar"]
 
-p1 = Funcs.start
-send p1, {self, 7, "www.yahoo.com"}
+#p1 = Funcs.start
+#send p1, {self, 1, "www.yahoo.com"}
 
-p2 = Funcs.start
-send p2, {self, 4, "www.google.com.ar"}
+#p2 = Funcs.start
+#send p2, {self, 1, "www.amazon.com"}
 
-p3 = Funcs.start
-send p3, {self, 2, "www.erlang.org"}
+#p3 = Funcs.start
+#send p3, {self, 1, "www.google.com.ar"}
 
 
-Funcs.recibir(3)
 
+lista
+|> Enum.map(fn (url) ->
+  p = Funcs.start
+  send p, {self, 1, url}
+end)
+
+
+Funcs.recibir(length(lista))
