@@ -8,8 +8,8 @@ defmodule Funcs do
       {remitente, c, u} ->  IO.puts "Me llega de #{inspect remitente} para #{u}"
                             case System.cmd("ping", ["-c", "#{c}", u]) do
                               {_output, 0} -> send remitente, "OK: Termine con #{u}"
-                              {_output, 1} -> send remitente, "ERROR: Termine con #{u}"
-                              {_output, 2} -> send remitente, "ERROR: Termine con #{u}"
+                              {_output, 1} -> send remitente, "ERROR 1: Termine con #{u}"
+                              {_output, 2} -> send remitente, "ERROR 2: Termine con #{u}"
                             end
     end
   end
@@ -48,11 +48,14 @@ lista = ["www.amazon.com", "www.google.com.ar", "www.yahoo.com.arrr"]
 
 
 
-lista
-|> Enum.map(fn (url) ->
+#lista
+Enum.to_list(1 .. 255)
+|> Enum.map(fn (o) ->
+  url = "10.6.1.#{o}"
+  #{url, indice} = t
   p = Funcs.start
   send p, {self, 1, url}
 end)
 
 
-Funcs.recibir(length(lista))
+Funcs.recibir(255)
