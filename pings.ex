@@ -9,6 +9,7 @@ defmodule Funcs do
                             case System.cmd("ping", ["-c", "#{c}", u]) do
                               {_output, 0} -> send remitente, "OK: Termine con #{u}"
                               {_output, 1} -> send remitente, "ERROR: Termine con #{u}"
+                              {_output, 2} -> send remitente, "ERROR: Termine con #{u}"
                             end
     end
   end
@@ -34,7 +35,7 @@ end
 
 
 
-lista = ["www.amazon.com", "www.google.com.ar", "www.yahoo.com.ar"]
+lista = ["www.amazon.com", "www.google.com.ar", "www.yahoo.com.arrr"]
 
 #p1 = Funcs.start
 #send p1, {self, 1, "www.yahoo.com"}
