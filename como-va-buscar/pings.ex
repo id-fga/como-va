@@ -1,64 +1,31 @@
 defmodule Funcs do
-    def start do
-      pid = spawn(Funcs, :nodeping, [])
+    def start(name, ip) do
+      yo = self
+      pid = spawn(Funcs, :nodeping, [yo, name, ip])
     end
 
-  def nodeping do
-    receive do
-      {remitente, name, ip} ->  case Node.ping :"mxt@#{ip}" do
-                                  :pong ->  #Node.connect
-                                            r = Node.connect(:"mxt@#{ip}")
-                                            :global.sync()
-                                            pid = :global.whereis_name("server-mxt")
-                                            IO.puts "#{inspect pid}"
-                                            send pid, {self, "Te saludo"}
-                                            send remitente, "#{ip}"
-                                  :pang ->  send remitente, :pang
-                                end
+  def nodeping(yo, name, ip) do
+    case Node.ping :"#{name}@#{ip}" do
+        :pong -> send yo, "#{ip}"
+        :pang -> send yo, :pang
     end
   end
-
-
-  def recibir (tope) do
-    receive do
-      :pang -> :pang
-      m -> IO.puts "#{m}"
-    end
-
-    if tope == 1 do
-      IO.inspect Node.list
-      IO.puts "Fin"
-    else
-      recibir tope - 1
-    end
-
-  end
-
 end
 
 
 
-lista = ["www.amazon.com", "www.google.com.ar", "www.yahoo.com.arrr"]
-
-#p1 = Funcs.start
-#send p1, {self, 1, "www.yahoo.com"}
-
-#p2 = Funcs.start
-#send p2, {self, 1, "www.amazon.com"}
-
-#p3 = Funcs.start
-#send p3, {self, 1, "www.google.com.ar"}
-
-
-
-Enum.to_list(2 .. 255)
+rango = 2 .. 254
+Enum.to_list(rango)
 |> Enum.map(fn (o) ->
-  name = "mxt"
-  ip = "192.168.0.#{o}"
+    Funcs.start("mxt", "192.168.0.#{o}")
+end)
+|> Enum.map(fn (o) ->
 
-  p = Funcs.start
-  send p, {self, name, ip}
+    receive do
+        :pang -> :pang
+        m -> IO.puts "#{m}"
+        after 50 -> :timeout
+    end
+    
 end)
 
-
-Funcs.recibir(254)
