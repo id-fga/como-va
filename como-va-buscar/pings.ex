@@ -1,13 +1,18 @@
 defmodule Funcs do
-    def start(name, ip) do
-      yo = self
-      pid = spawn(Funcs, :nodeping, [yo, name, ip])
+    def start() do
+      spawn(Funcs, :esperar, [])
     end
 
-  def nodeping(yo, name, ip) do
-    case Node.ping :"#{name}@#{ip}" do
-        :pong -> send yo, "#{ip}"
-        :pang -> send yo, :pang
+  def esperar do
+    receive do
+      {:connect, remitente, name, ip} -> send remitente, connect(name, ip)
+    end
+  end
+
+  def connect(name, ip) do
+    case Node.connect :"#{name}@#{ip}" do
+        :true -> "#{ip}"
+        :false -> :error
     end
   end
 end
@@ -17,15 +22,20 @@ end
 rango = 2 .. 254
 Enum.to_list(rango)
 |> Enum.map(fn (o) ->
-    Funcs.start("mxt", "192.168.0.#{o}")
+    pid = Funcs.start
+    send pid, {:connect, self, "mxt", "10.6.1.#{o}"}
 end)
-|> Enum.map(fn (o) ->
+|> Enum.map(fn (pid) ->
 
-    receive do
-        :pang -> :pang
-        m -> IO.puts "#{m}"
-        after 50 -> :timeout
-    end
+  receive do
+    :error -> :error
+    m -> IO.puts "#{m}"
+
+    after 50 -> :timeout
+  end
     
 end)
+
+l = :global.registered_names
+IO.inspect l
 
