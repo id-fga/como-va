@@ -32,31 +32,17 @@ defmodule Main do
     Enum.to_list(pid_list)
     |> Enum.map(fn (pid_element) -> 
       {pid, name, ip} = pid_element
+
       send pid, {:connect, self, name, ip}
       pid
-    end)
-  end
-
-  def esperar (pid) do
-    Enum.to_list(pid)
-    |> Enum.map(fn (pid) ->
-
-      receive do
-        {:error, ip} -> :error
-        {:ok, ip} -> :ok
-
-        after 50 -> :timeout
-   
-      end
-
     end)
   end
 
   def loop (pid_list) do
     IO.puts "\nEscaneando todo"
     mensajear pid_list
-    esperar pid_list
 
+    :timer.sleep 500 
     l = :global.registered_names
     IO.inspect l
     IO.puts "Termino todo\n"
