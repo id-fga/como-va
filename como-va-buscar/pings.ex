@@ -24,7 +24,8 @@ defmodule Main do
     Enum.to_list(rango)
     |> Enum.map(fn (o) ->
       pid = Funcs.start
-      {pid, "mxt", "10.6.1.#{o}"}
+      #{pid, "mxt", "10.6.1.#{o}"}
+      {pid, "mxt", "192.168.0.#{o}"}
     end)
   end
 
@@ -38,11 +39,26 @@ defmodule Main do
     end)
   end
 
+  def esperar (pid) do
+    Enum.to_list(pid)
+    |> Enum.map(fn (pid) ->
+
+      receive do
+        {:error, ip} -> :error
+        {:ok, ip} -> :ok
+
+        after 50 -> :timeout
+   
+      end
+
+    end)
+  end
+
   def loop (pid_list) do
     IO.puts "\nEscaneando todo"
     mensajear pid_list
+    esperar pid_list
 
-    :timer.sleep 500 
     l = :global.registered_names
     IO.inspect l
     IO.puts "Termino todo\n"
