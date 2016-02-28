@@ -19,7 +19,7 @@ end
 #pid = Server.start
 #IO.puts "#{inspect pid}"
 
-:global.register_name("server-asdsadqweqw", self)
+:global.register_name("server-192.168.0.5", self)
 Server.esperar
 
 #receive do
