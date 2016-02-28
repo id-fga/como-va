@@ -34,6 +34,8 @@ end)
 |> Enum.map(fn (pid) ->
     receive do
         {:ok, ip} -> IO.puts "Ok para #{inspect pid} con #{ip}"
-        {:pang, ip} -> IO.puts "Error para #{inspect pid} con #{ip}"
+        {:pang, ip} -> :pang #IO.puts "Error para #{inspect pid} con #{ip}"
+
+        after 50 -> :timeout
     end
 end)
