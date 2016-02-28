@@ -33,8 +33,11 @@ end)
 end)
 |> Enum.map(fn (pid) ->
     receive do
-        {:ok, ip} -> IO.puts "Ok para #{inspect pid} con #{ip}"
+        {:ok, ip} -> :ok #IO.puts "Ok para #{inspect pid} con #{ip}"
         {:pang, ip} -> :pang #IO.puts "Error para #{inspect pid} con #{ip}"
 
     end
 end)
+
+l = Node.list
+IO.inspect l
