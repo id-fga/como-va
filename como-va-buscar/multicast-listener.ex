@@ -2,14 +2,15 @@ defmodule MulticastReceiver do
 
   use GenServer
 
-  def start_link(opts \\ []) do
+  def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, opts)
+    IO.inspect opts
   end
 
   def init (:ok) do
     udp_options = [
       :binary,
-      active:          10,
+      active:          true,
       add_membership:  { {224,1,1,1}, {0,0,0,0} },
       multicast_if:    {0,0,0,0},
       multicast_loop:  false,
@@ -23,13 +24,27 @@ defmodule MulticastReceiver do
   def handle_info({:udp, socket, ip, port, data}, state)
   do
     # when we popped one message we allow one more to be buffered
-    :inet.setopts(socket, [active: 1])
+    #:inet.setopts(socket, [active: 1])
     IO.inspect [ip, port, data]
     {:noreply, state}
   end
 end
 
-MulticastReceiver.start_link
+defmodule Prueba do
+    def iniciar do
+        spawn(Prueba, :esperar, [])
+    end
+
+    def esperar do
+        receive do
+            _ -> IO.puts "Es el fin"
+        end
+    end
+
+end
+
+pid = Prueba.iniciar
+MulticastReceiver.start_link([{:pid, pid}])
 
 receive do
     _ -> :ok
