@@ -46,7 +46,7 @@ defmodule MasterListener do
                 -> IO.puts "Sender es igual, es un mensaje propio"
 
             true
-                -> IO.puts "Sender es menor, yo soy el maestro"
+                -> IO.puts "Sender es mayor, yo soy el maestro"
         end
 
     end
