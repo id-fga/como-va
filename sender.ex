@@ -9,5 +9,5 @@ end
 
 Funcs.repetir(fn ->
     {:ok, socket} = :gen_udp.open(0, [])
-    :gen_udp.send(socket, {224, 1, 1, 1}, 49999, "AAAAA")
+    :gen_udp.send(socket, {224, 1, 1, 1}, 49999, "master_node")
 end)

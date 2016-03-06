@@ -20,7 +20,7 @@ defmodule MasterListener do
 
     defp loop(socket) do
         case :gen_udp.recv(socket, 0) do
-            {:ok, {{oct_1, oct_2, oct_3, oct_4}, _port, msg}} -> decide_ip(oct_4)
+            {:ok, {{oct_1, oct_2, oct_3, oct_4}, _port, "master_node"}} -> decide_ip(oct_4)
             _ -> :error
         end
 
@@ -29,6 +29,7 @@ defmodule MasterListener do
 
     defp decide_ip(oct) do
         local_oct = get_oct(get_ip, 4)
+        IO.puts "----------------------------"
         IO.puts local_oct
         IO.puts oct
     end
