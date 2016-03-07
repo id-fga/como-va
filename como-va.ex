@@ -4,6 +4,7 @@ defmodule Sender do
     end
 
     def repetir do
+        IO.puts "Enviando"
         {:ok, s} = :gen_udp.open(0, [])
         :timer.sleep(1000)
         :gen_udp.send(s, {224, 1, 1, 1}, 49999, "master_node")
@@ -13,11 +14,11 @@ defmodule Sender do
 end
 
 defmodule MasterListener do
-    def start() do
-        spawn(MasterListener, :init, [])
+    def start(sender_pid) do
+        spawn(MasterListener, :init, [sender_pid])
     end
 
-    def init() do
+    def init(sender_pid) do
         udp_options = [
             :binary,
             active:          false,
@@ -29,19 +30,19 @@ defmodule MasterListener do
         ]
 
         {:ok, socket} = :gen_udp.open(49999, udp_options)
-        loop(socket)
+        loop(socket, sender_pid)
     end
 
-    defp loop(socket) do
+    defp loop(socket, sender_pid) do
         case :gen_udp.recv(socket, 0) do
-            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket)
+            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket, sender_pid)
             _ -> :error
         end
 
-        loop(socket)
+        loop(socket, sender_pid)
     end
 
-    defp decide_ip(sender_ip, socket) do
+    defp decide_ip(sender_ip, socket, sender_pid) do
         string_sender_ip = Enum.join(Tuple.to_list(sender_ip), ".")
         string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
 
@@ -55,6 +56,7 @@ defmodule MasterListener do
                     IO.puts "Local  es: " <> string_local_ip
                     IO.puts "Sender es menor, el puede ser el maestro"
                     IO.puts "Debo morir"
+                    Process.exit(sender_pid, :kill)
 
             sender_oct == local_oct
                 ->  :nada
@@ -64,8 +66,7 @@ defmodule MasterListener do
                 ->  IO.puts "----------------------------"
                     IO.puts "Sender es: " <> string_sender_ip
                     IO.puts "Local  es: " <> string_local_ip
-                    IO.puts "Sender es mayor, yo soy el maestro"
-                    #:gen_tcp.send(socket, sender_ip, 1234, "kill")
+                    IO.puts "Sender es mayor, yo podria ser el maestro"
         end
 
     end
@@ -80,5 +81,5 @@ defmodule MasterListener do
     end
 end
 
-Sender.start
-MasterListener.start
+pid = Sender.start
+MasterListener.start pid
