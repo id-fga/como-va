@@ -20,14 +20,15 @@ defmodule MasterListener do
 
     defp loop(socket) do
         case :gen_udp.recv(socket, 0) do
-            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip)
+            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket)
+            {:ok, {sender_ip, _port, "kill"}} -> IO.puts "Me tengo que morir"
             _ -> :error
         end
 
         loop(socket)
     end
 
-    defp decide_ip(sender_ip) do
+    defp decide_ip(sender_ip, socket) do
         string_sender_ip = Enum.join(Tuple.to_list(sender_ip), ".")
         string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
 
@@ -43,10 +44,11 @@ defmodule MasterListener do
                 -> IO.puts "Sender es menor, el es el maestro"
 
             sender_oct == local_oct
-                -> IO.puts "Sender es igual, es un mensaje propio"
+                ->  IO.puts "Sender es igual, es un mensaje propio"
 
             true
-                -> IO.puts "Sender es mayor, yo soy el maestro"
+                ->  IO.puts "Sender es mayor, yo soy el maestro"
+                    :gen_udp.send(socket, {224, 1, 1, 1}, 49999, "kill")
         end
 
     end
