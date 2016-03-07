@@ -40,6 +40,7 @@ defmodule MasterListener do
                     IO.puts "Sender es: " <> string_sender_ip
                     IO.puts "Local  es: " <> string_local_ip
                     IO.puts "Sender es menor, el es el maestro"
+                    IO.puts "Debo morir"
 
             sender_oct == local_oct
                 ->  :nada
@@ -49,7 +50,7 @@ defmodule MasterListener do
                 ->  IO.puts "----------------------------"
                     IO.puts "Sender es: " <> string_sender_ip
                     IO.puts "Local  es: " <> string_local_ip
-                    IO.puts "Sender es mayor, yo soy el maestro" <> string_sender_ip <> " debe morir"
+                    IO.puts "Sender es mayor, yo soy el maestro"
                     #:gen_tcp.send(socket, sender_ip, 1234, "kill")
         end
 
