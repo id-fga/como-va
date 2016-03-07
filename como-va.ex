@@ -1,9 +1,23 @@
-defmodule MasterListener do
+defmodule Sender do
     def start do
+        spawn(Sender, :repetir, [])
+    end
+
+    def repetir do
+        {:ok, s} = :gen_udp.open(0, [])
+        :timer.sleep(1000)
+        :gen_udp.send(s, {224, 1, 1, 1}, 49999, "master_node")
+        repetir
+    end
+
+end
+
+defmodule MasterListener do
+    def start() do
         spawn(MasterListener, :init, [])
     end
 
-    def init do
+    def init() do
         udp_options = [
             :binary,
             active:          false,
@@ -15,7 +29,7 @@ defmodule MasterListener do
         ]
 
         {:ok, socket} = :gen_udp.open(49999, udp_options)
-        loop socket
+        loop(socket)
     end
 
     defp loop(socket) do
@@ -39,7 +53,7 @@ defmodule MasterListener do
                 ->  IO.puts "----------------------------"
                     IO.puts "Sender es: " <> string_sender_ip
                     IO.puts "Local  es: " <> string_local_ip
-                    IO.puts "Sender es menor, el es el maestro"
+                    IO.puts "Sender es menor, el puede ser el maestro"
                     IO.puts "Debo morir"
 
             sender_oct == local_oct
@@ -66,6 +80,5 @@ defmodule MasterListener do
     end
 end
 
-
+Sender.start
 MasterListener.start
-
