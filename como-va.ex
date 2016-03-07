@@ -21,7 +21,7 @@ defmodule MasterListener do
     defp loop(socket) do
         case :gen_udp.recv(socket, 0) do
             {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket)
-            {:ok, {sender_ip, _port, "kill"}} -> IO.puts "Me tengo que morir"
+            {:ok, {get_ip, _port, "kill"}} -> IO.puts "Me tengo que morir"
             _ -> :error
         end
 
@@ -48,11 +48,12 @@ defmodule MasterListener do
 
             true
                 ->  IO.puts "Sender es mayor, yo soy el maestro"
+                    IO.puts string_sender_ip <> " Debe morir"
                     :gen_udp.send(socket, {224, 1, 1, 1}, 49999, "kill")
         end
 
     end
-
+ 
     defp get_oct(ip, pos) do
         elem(ip, pos - 1)
     end
