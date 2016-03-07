@@ -4,7 +4,7 @@ defmodule Sender do
     end
 
     def repetir do
-        IO.puts "Enviando"
+        IO.puts "Yo soy el maestro"
         {:ok, s} = :gen_udp.open(0, [])
         :timer.sleep(1000)
         :gen_udp.send(s, {224, 1, 1, 1}, 49999, "master_node")
@@ -57,6 +57,7 @@ defmodule MasterListener do
                     IO.puts "Sender es menor, el puede ser el maestro"
                     IO.puts "Debo morir"
                     Process.exit(sender_pid, :kill)
+                    Process.exit(self, :kill)
 
             sender_oct == local_oct
                 ->  :nada
