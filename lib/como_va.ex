@@ -18,11 +18,11 @@ defmodule Sender do
 end
 
 defmodule MasterListener do
-    def start(sender_pid) do
-        spawn(MasterListener, :init, [sender_pid])
+    def start do
+        spawn(MasterListener, :init, [])
     end
 
-    def init(sender_pid) do
+    def init() do
         udp_options = [
             :binary,
             active:          false,
@@ -34,19 +34,19 @@ defmodule MasterListener do
         ]
 
         {:ok, socket} = :gen_udp.open(49999, udp_options)
-        loop(socket, sender_pid)
+        loop(socket)
     end
 
-    defp loop(socket, sender_pid) do
+    defp loop(socket) do
         case :gen_udp.recv(socket, 0) do
-            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket, sender_pid)
+            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket)
             _ -> :error
         end
 
-        loop(socket, sender_pid)
+        loop(socket)
     end
 
-    defp decide_ip(sender_ip, socket, sender_pid) do
+    defp decide_ip(sender_ip, socket) do
         string_sender_ip = Enum.join(Tuple.to_list(sender_ip), ".")
         string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
 
@@ -60,8 +60,6 @@ defmodule MasterListener do
                     IO.puts "Local  es: " <> string_local_ip
                     IO.puts "Sender es menor, el puede ser el maestro"
                     IO.puts "Debo morir"
-                    Process.exit(sender_pid, :kill)
-                    Process.exit(self, :kill)
 
             sender_oct == local_oct
                 ->  :nada
@@ -86,5 +84,19 @@ defmodule MasterListener do
     end
 end
 
-pid = Sender.start
-MasterListener.start pid
+defmodule ComoVa do
+    def main(argv) do
+        iniciar
+    end
+
+    def iniciar do
+        procesos = [Sender.start, MasterListener.start]
+        IO.inspect procesos
+    end
+
+end
+
+
+#:timer.sleep(:infinity)
+
+
