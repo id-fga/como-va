@@ -1,5 +1,69 @@
+defmodule MasterListener do
+    use GenServer
+
+    def start do
+        GenServer.start_link(__MODULE__, :ok, [])
+    end
+
+    def init(:ok) do
+        udp_options = [
+            :binary,
+            active:          10,
+            add_membership:  { {224,1,1,1}, {0,0,0,0} },
+            multicast_if:    {0,0,0,0},
+            multicast_loop:  false,
+            multicast_ttl:   4,
+            reuseaddr:       true
+        ]
+
+        {:ok, socket} = :gen_udp.open(49999, udp_options)
+    end
+
+    def handle_info({:udp, socket, {_, _, _, sender_oct}, port, "master_node"}, state) do
+        :inet.setopts(socket, [active: 1])
+
+        string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
+        local_oct = get_oct(get_ip, 4)
+
+        IO.puts "Sender es: " <> to_string(sender_oct)
+        IO.puts "Local  es: " <> to_string(local_oct)
+
+        case decidir(local_oct, sender_oct) do
+            :harakiri       -> IO.puts "El puede ser el maestro, debo morir"
+            :keepalive      -> IO.puts "Yo puedo ser el maestro"
+            _               -> :nada
+        end
+
+        IO.puts "----------------------------"
+
+        {:noreply, state}
+    end
+
+    def decidir(local, sender) when local == sender do
+        :igual
+    end
+
+    def decidir(local, sender) when local > sender do
+        :harakiri
+    end
+
+    def decidir(local, sender) when local < sender do
+        :keepalive
+    end
+
+    defp get_oct(ip, pos) do
+        elem(ip, pos - 1)
+    end
+
+    defp get_ip do
+        {:ok, val} = :inet.getif() 
+        elem(hd(val), 0)
+    end
+end
+
 defmodule Sender do
     def start do
+        IO.puts "Start Sender"
         spawn(Sender, :init, [])
     end
 
@@ -17,86 +81,18 @@ defmodule Sender do
 
 end
 
-defmodule MasterListener do
-    def start do
-        spawn(MasterListener, :init, [])
-    end
-
-    def init() do
-        udp_options = [
-            :binary,
-            active:          false,
-            add_membership:  { {224,1,1,1}, {0,0,0,0} },
-            multicast_if:    {0,0,0,0},
-            multicast_loop:  false,
-            multicast_ttl:   4,
-            reuseaddr:       true
-        ]
-
-        {:ok, socket} = :gen_udp.open(49999, udp_options)
-        loop(socket)
-    end
-
-    defp loop(socket) do
-        case :gen_udp.recv(socket, 0) do
-            {:ok, {sender_ip, _port, "master_node"}} -> decide_ip(sender_ip, socket)
-            _ -> :error
-        end
-
-        loop(socket)
-    end
-
-    defp decide_ip(sender_ip, socket) do
-        string_sender_ip = Enum.join(Tuple.to_list(sender_ip), ".")
-        string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
-
-        local_oct = get_oct(get_ip, 4)
-        sender_oct = get_oct(sender_ip, 4)
-
-        cond do
-            sender_oct < local_oct
-                ->  IO.puts "----------------------------"
-                    IO.puts "Sender es: " <> string_sender_ip
-                    IO.puts "Local  es: " <> string_local_ip
-                    IO.puts "Sender es menor, el puede ser el maestro"
-                    IO.puts "Debo morir"
-
-            sender_oct == local_oct
-                ->  :nada
-                #->  IO.puts "Sender es igual, es un mensaje propio"
-
-            true
-                ->  IO.puts "----------------------------"
-                    IO.puts "Sender es: " <> string_sender_ip
-                    IO.puts "Local  es: " <> string_local_ip
-                    IO.puts "Sender es mayor, yo podria ser el maestro"
-        end
-
-    end
- 
-    defp get_oct(ip, pos) do
-        elem(ip, pos - 1)
-    end
-
-    defp get_ip do
-        {:ok, val} = :inet.getif() 
-        elem(hd(val), 0)
-    end
-end
-
 defmodule ComoVa do
     def main(argv) do
         iniciar
     end
 
     def iniciar do
-        procesos = [Sender.start, MasterListener.start]
-        IO.inspect procesos
+        [Sender.start, MasterListener.start]
+        |> Enum.map(fn (p) ->
+            IO.inspect p
+        end)
     end
 
 end
 
-
 #:timer.sleep(:infinity)
-
-
