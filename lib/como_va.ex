@@ -2,7 +2,7 @@ defmodule MasterListener do
     use GenServer
 
     def start do
-        GenServer.start_link(__MODULE__, :ok, [])
+        GenServer.start(__MODULE__, :ok, [])
     end
 
     def init(:ok) do
@@ -25,13 +25,11 @@ defmodule MasterListener do
         string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
         local_oct = get_oct(get_ip, 4)
 
-        IO.puts "Sender es: " <> to_string(sender_oct)
-        IO.puts "Local  es: " <> to_string(local_oct)
+        IO.puts "LISTENER > " <> to_string(:erlang.system_time)
 
         case decidir(local_oct, sender_oct) do
-            :harakiri       -> IO.puts "El puede ser el maestro, debo morir"
-            :keepalive      -> IO.puts "Yo puedo ser el maestro"
-            _               -> :nada
+            :harakiri       ->  harakiri
+            _               ->  :keepalive
         end
 
         IO.puts "----------------------------"
@@ -39,16 +37,14 @@ defmodule MasterListener do
         {:noreply, state}
     end
 
-    def decidir(local, sender) when local == sender do
-        :igual
-    end
-
     def decidir(local, sender) when local > sender do
+        IO.puts "LISTENER > Local  es: " <> to_string(local)
+        IO.puts "LISTENER > Sender es: " <> to_string(sender)
         :harakiri
     end
 
-    def decidir(local, sender) when local < sender do
-        :keepalive
+    def decidir(local, sender) do
+        :discard
     end
 
     defp get_oct(ip, pos) do
@@ -59,11 +55,16 @@ defmodule MasterListener do
         {:ok, val} = :inet.getif() 
         elem(hd(val), 0)
     end
+
+    defp harakiri do
+        IO.puts "LISTENER > El puede ser el maestro, debo morir"
+        main_pid = Process.whereis(:main)
+        send main_pid, :reiniciar
+    end
 end
 
 defmodule Sender do
     def start do
-        IO.puts "Start Sender"
         spawn(Sender, :init, [])
     end
 
@@ -73,7 +74,7 @@ defmodule Sender do
     end
 
     def loop(s) do
-        IO.puts "Yo soy el maestro"
+        IO.puts "SENDER > Yo soy el maestro"
         :timer.sleep(1000)
         :gen_udp.send(s, {224, 1, 1, 1}, 49999, "master_node")
         loop(s)
@@ -87,12 +88,25 @@ defmodule ComoVa do
     end
 
     def iniciar do
-        [Sender.start, MasterListener.start]
-        |> Enum.map(fn (p) ->
-            IO.inspect p
-        end)
-    end
+        sender_pid = Sender.start
+        {:ok, listener_pid} = MasterListener.start
 
+        #TODO: Hacer con una lista de tuplas, iterando y registrando
+        Process.register(self, :main)
+        Process.register(sender_pid, :sender)
+        Process.register(listener_pid, :listener)
+
+        #TODO: Rehacer, revisar unregister, agregar sleep random
+        receive do
+            :reiniciar  ->  Process.exit(Process.whereis(:sender), :kill)
+                            Process.exit(Process.whereis(:listener), :kill)
+                            Process.unregister(:main)
+                            IO.puts "MAIN > Todo esta muerto"
+                            IO.puts "MAIN > Espero y vuelvo a arrancar"
+                            :timer.sleep(5000)
+                            iniciar
+        end
+    end
 end
 
 #:timer.sleep(:infinity)
