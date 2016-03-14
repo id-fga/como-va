@@ -8,7 +8,8 @@ defmodule MasterListener do
     def init(:ok) do
         udp_options = [
             :binary,
-            active:          10,
+            #active:          10,
+            active:          :true,
             add_membership:  { {224,1,1,1}, {0,0,0,0} },
             multicast_if:    {0,0,0,0},
             multicast_loop:  false,
@@ -19,8 +20,9 @@ defmodule MasterListener do
         {:ok, socket} = :gen_udp.open(49999, udp_options)
     end
 
-    def handle_info({:udp, socket, {_, _, _, sender_oct}, port, "master_node"}, state) do
-        :inet.setopts(socket, [active: 1])
+    def handle_info({:udp, socket, {oct1, oct2, oct3, sender_oct}, port, "master_node"}, state) do
+        IO.puts "Proceso paquete de #{oct1}.#{oct2}.#{oct3}.#{sender_oct}"
+        #:inet.setopts(socket, [active: :once])
 
         string_local_ip = Enum.join(Tuple.to_list(get_ip), ".")
         local_oct = get_oct(get_ip, 4)
