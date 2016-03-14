@@ -28,8 +28,11 @@ defmodule MasterListener do
         case :gen_udp.recv(socket, 0, 5000) do
             {:ok, {^local_ip, _, _}}                -> :ignore
             {:ok, {sender_ip, _, "master_node"}}    ->  IO.puts "Master es #{inspect sender_ip}"
+                                                        send :main, :kill_sender
+
             {:error, :timeout}                      ->  IO.puts "Estan todos callados"
-                                                        Sender.start
+                                                        sender_pid = Sender.start
+                                                        Process.register(sender_pid, :sender)
         end
 
         loop(socket, {})
@@ -74,7 +77,10 @@ defmodule ComoVa do
         #Process.register(sender_pid, :sender)
         Process.register(listener_pid, :listener)
 
-        #TODO: Rehacer, revisar unregister, agregar sleep random
+        recibir
+    end
+
+    def recibir do
         receive do
             #:reiniciar  -> #Process.exit(Process.whereis(:sender), :kill)
                             #Process.exit(Process.whereis(:listener), :kill)
@@ -84,8 +90,22 @@ defmodule ComoVa do
                             #:timer.sleep(5000)
                             #iniciar
 
+            :kill_sender -> 
+                            matar Process.whereis(:sender)
+                            #matar(Process.alive?(Process.whereis(:sender)))
+                            recibir 
             _ -> :nada
         end
+    end
+
+    def matar(nil) do
+        IO.puts "Nada"
+    end
+
+    def matar(pid) do
+        IO.puts "Sender debe morir #{inspect pid}"
+        Process.unregister(:sender)
+        Process.exit(pid, :kill)
     end
 end
 
