@@ -34,6 +34,8 @@ defmodule MasterListener do
             {:ok, {^local_ip, _, _}}                -> :ignore
 
             {:ok, {sender_ip, _, "master_node"}}    ->  IO.puts "Master es #{inspect sender_ip}"
+                                                        hora = Enum.join(Tuple.to_list(:erlang.time), ":")
+                                                        IO.puts "Recibi notificacion a las " <> hora
                                                         send :main, :kill_sender
 
             {:error, :timeout}                      ->  IO.puts "Estan todos callados, espere " <> to_string(timeout)
