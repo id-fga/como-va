@@ -23,14 +23,20 @@ defmodule MasterListener do
 
     def loop(socket, master) do
 
+        r = 2 .. 10
+        timeout_list = Enum.map(r, fn n -> n * 1000 end)
+        timeout = Enum.random(timeout_list)
+        IO.puts "----------------------------------------"
+
         local_ip = get_ip
 
-        case :gen_udp.recv(socket, 0, 5000) do
+        case :gen_udp.recv(socket, 0, timeout) do
             {:ok, {^local_ip, _, _}}                -> :ignore
+
             {:ok, {sender_ip, _, "master_node"}}    ->  IO.puts "Master es #{inspect sender_ip}"
                                                         send :main, :kill_sender
 
-            {:error, :timeout}                      ->  IO.puts "Estan todos callados"
+            {:error, :timeout}                      ->  IO.puts "Estan todos callados, espere " <> to_string(timeout)
                                                         sender_pid = Sender.start
                                                         Process.register(sender_pid, :sender)
         end
