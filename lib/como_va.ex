@@ -4,34 +4,29 @@ defmodule ComoVa do
     end
 
     def iniciar do
-        #sender_pid = Sender.start
+        local_ip = Enum.join(Tuple.to_list(MasterListener.get_ip), ".")
+        nodename = String.to_atom("comova@"<>local_ip)
+        :net_kernel.start([nodename, :longnames])
         listener_pid = MasterListener.start
-        Prueba.start
 
-        #TODO: Hacer con una lista de tuplas, iterando y registrando
         Process.register(self, :main)
+        :global.register_name(:main, self)
+
         #Process.register(sender_pid, :sender)
         Process.register(listener_pid, :listener)
 
-        recibir
+        recibir {}
     end
 
-    def recibir do
+    def recibir(t) do
         receive do
-            #:reiniciar  -> #Process.exit(Process.whereis(:sender), :kill)
-                            #Process.exit(Process.whereis(:listener), :kill)
-                            #Process.unregister(:main)
-                            #IO.puts "MAIN > Todo esta muerto"
-                            #IO.puts "MAIN > Espero y vuelvo a arrancar"
-                            #:timer.sleep(5000)
-                            #iniciar
-
-            :kill_sender -> 
-                            matar Process.whereis(:sender)
-                            #matar(Process.alive?(Process.whereis(:sender)))
-                            recibir 
-            _ -> :nada
+            {:master_es, master_ip}     ->  matar Process.whereis(:sender)
+                                            recibir {:master, master_ip}
+            {:master_quien, remote_pid} ->  IO.puts "Yo te digo quien es el master #{inspect t}"
+            _                           -> :nada
         end
+
+        recibir t
     end
 
     def matar(nil) do
