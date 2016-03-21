@@ -34,9 +34,10 @@ defmodule MasterListener do
             {:ok, {^local_ip, _, _}}                -> :ignore
 
             {:ok, {sender_ip, _, "master_node"}}    ->  IO.puts "Master es #{inspect sender_ip}"
-                                                        send :main, {:master_es, sender_ip}
+                                                        send :main, {:master_es, Enum.join(Tuple.to_list(sender_ip), ".")}
 
             {:error, :timeout}                      ->  IO.puts "Estan todos callados, espere " <> to_string(timeout)
+                                                        send :main, {:master_es, Enum.join(Tuple.to_list(get_ip), ".")}
                                                         sender_pid = Sender.start
                                                         Process.register(sender_pid, :sender)
         end

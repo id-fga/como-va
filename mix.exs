@@ -5,12 +5,12 @@ defmodule ComoVa.Mixfile do
         [app: :como_va,
         version: "0.0.1",
         elixir: "~> 1.0",
-        escript: [main_module: ComoVa],
+        escript: escript,
         deps: deps]
     end
 
-    def application do
-        [applications: [:logger]]
+    defp escript do
+        [main_module: ComoVa]
     end
 
     defp deps do

@@ -22,7 +22,7 @@ defmodule ComoVa do
         receive do
             {:master_es, master_ip}     ->  matar Process.whereis(:sender)
                                             recibir {:master, master_ip}
-            {:master_quien, remote_pid} ->  IO.puts "Yo te digo quien es el master #{inspect t}"
+            {:master_quien, remote_pid} ->  send remote_pid, t
             _                           -> :nada
         end
 
