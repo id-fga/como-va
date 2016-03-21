@@ -7,6 +7,7 @@ defmodule ComoVa do
         local_ip = Enum.join(Tuple.to_list(MasterListener.get_ip), ".")
         nodename = String.to_atom("comova@"<>local_ip)
         :net_kernel.start([nodename, :longnames])
+        :erlang.set_cookie(node, :"de-chocolate")
         listener_pid = MasterListener.start
 
         Process.register(self, :main)
