@@ -18,6 +18,7 @@ defmodule MasterListener do
         ]
 
         {:ok, socket} = :gen_udp.open(49999, udp_options)
+        :erlang.set_cookie(node, :"de-chocolate")
         loop(socket, {})
     end
 
