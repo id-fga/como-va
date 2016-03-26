@@ -18,18 +18,24 @@ defmodule ComoVa do
         #Process.register(sender_pid, :sender)
         Process.register(listener_pid, :listener)
 
-        recibir {}
+        recibir {"", []}
     end
 
-    def recibir(t) do
+    def recibir({master_ip, nodos}) do
         receive do
             {:master_es, master_ip}     ->  matar Process.whereis(:sender)
-                                            recibir {:master, master_ip}
-            {:master_quien, remote_pid} ->  send remote_pid, t
+                                            recibir({master_ip, []})
+
+            {:master_quien, remote_pid} ->  send remote_pid, {:master, master_ip}
+            {:registrar, nombre}        ->  IO.puts "Agrego a la lista"
+                                            IO.inspect nodos
+                                            nueva_lista = nodos ++ [nombre]
+                                            recibir {master_ip, Enum.uniq(nueva_lista)}
+
             _                           -> :nada
         end
 
-        recibir t
+        recibir {master_ip, nodos}
     end
 
     def matar(nil) do
