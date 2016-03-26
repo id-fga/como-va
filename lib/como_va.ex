@@ -10,8 +10,10 @@ defmodule ComoVa do
         :erlang.set_cookie(node, :"de-chocolate")
         listener_pid = MasterListener.start
 
+        global_process = String.to_atom("main-"<>local_ip)
+
         Process.register(self, :main)
-        :global.register_name(:main, self)
+        :global.register_name(global_process, self)
 
         #Process.register(sender_pid, :sender)
         Process.register(listener_pid, :listener)
