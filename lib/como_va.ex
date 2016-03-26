@@ -25,12 +25,8 @@ defmodule ComoVa do
         receive do
             {:master_es, master_ip}     ->  matar Process.whereis(:sender)
                                             recibir({master_ip, []})
-
             {:master_quien, remote_pid} ->  send remote_pid, {:master, master_ip}
-            {:registrar, nombre}        ->  IO.puts "Agrego a la lista"
-                                            IO.inspect nodos
-                                            nueva_lista = nodos ++ [nombre]
-                                            recibir {master_ip, Enum.uniq(nueva_lista)}
+            {:traer_lista, remote_pid}  ->  IO.inspect Node.list
 
             _                           -> :nada
         end
