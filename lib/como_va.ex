@@ -22,15 +22,10 @@ defmodule ComoVa do
     end
 
     def filtrar_lista(rn, nl) do
-        IO.puts "Lista entera #{inspect nl}"
-        IO.puts "Listra filrada para #{inspect rn}"
-        Enum.map(nl, fn(n) ->
-            sn = Atom.to_string(n)
-            case String.split(sn, "@") do
-                [^rn, _]    -> n
-                _           -> :nada
-            end
-        end) |> IO.inspect
+        Enum.filter(nl, fn(e) ->
+                [nombre, _] = Atom.to_string(e) |> String.split("@")
+                nombre == rn
+        end)
     end
 
     def recibir({master_ip, nodos}) do
@@ -38,7 +33,7 @@ defmodule ComoVa do
             {:master_es, master_ip}                     ->  matar Process.whereis(:sender)
                                                             recibir({master_ip, []})
             {:master_quien, remote_pid}                 ->  send remote_pid, {:master, master_ip}
-            {:traer_lista, register_name, remote_pid}   ->  filtrar_lista(register_name, Node.list)
+            {:traer_lista, register_name, remote_pid}   ->  send remote_pid, {:lista, filtrar_lista(register_name, Node.list)}
             _                                           -> :nada
         end
 
