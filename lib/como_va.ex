@@ -26,8 +26,10 @@ defmodule ComoVa do
         IO.puts "Listra filrada para #{inspect rn}"
         Enum.map(nl, fn(n) ->
             sn = Atom.to_string(n)
-            [^rn, _] = String.split(sn, "@")
-            sn
+            case String.split(sn, "@") do
+                [^rn, _]    -> n
+                _           -> :nada
+            end
         end) |> IO.inspect
     end
 
