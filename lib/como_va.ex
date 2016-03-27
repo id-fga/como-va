@@ -21,14 +21,18 @@ defmodule ComoVa do
         recibir {"", []}
     end
 
+    def filtrar_lista(rn, nl) do
+        IO.puts "Filtro lista de #{inspect rn}"
+        IO.puts "#{inspect nl}"
+    end
+
     def recibir({master_ip, nodos}) do
         receive do
-            {:master_es, master_ip}     ->  matar Process.whereis(:sender)
-                                            recibir({master_ip, []})
-            {:master_quien, remote_pid} ->  send remote_pid, {:master, master_ip}
-            {:traer_lista, remote_pid}  ->  IO.inspect Node.list
-
-            _                           -> :nada
+            {:master_es, master_ip}                     ->  matar Process.whereis(:sender)
+                                                            recibir({master_ip, []})
+            {:master_quien, remote_pid}                 ->  send remote_pid, {:master, master_ip}
+            {:traer_lista, register_name, remote_pid}   ->  filtrar_lista(register_name, Node.list)
+            _                                           -> :nada
         end
 
         recibir {master_ip, nodos}
