@@ -22,8 +22,13 @@ defmodule ComoVa do
     end
 
     def filtrar_lista(rn, nl) do
-        IO.puts "Filtro lista de #{inspect rn}"
-        IO.puts "#{inspect nl}"
+        IO.puts "Lista entera #{inspect nl}"
+        IO.puts "Listra filrada para #{inspect rn}"
+        Enum.map(nl, fn(n) ->
+            sn = Atom.to_string(n)
+            [^rn, _] = String.split(sn, "@")
+            sn
+        end) |> IO.inspect
     end
 
     def recibir({master_ip, nodos}) do
