@@ -32,7 +32,9 @@ defmodule ComoVa do
         receive do
             {:master_es, master_ip}                     ->  
                                                             if matar(retries) do
-                                                                recibir({master_ip, []}, retries + 1)
+                                                              recibir({master_ip, []}, retries + 1)
+                                                            else
+                                                              recibir({master_ip, nodos}, retries)
                                                             end
             {:master_quien, remote_pid}                 ->  send remote_pid, {:master, master_ip}
             {:traer_lista, register_name, remote_pid}   ->  send remote_pid, {:lista, filtrar_lista(register_name, Node.list)}
