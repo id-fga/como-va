@@ -18,7 +18,7 @@ defmodule ComoVa do
         #Process.register(sender_pid, :sender)
         Process.register(listener_pid, :listener)
 
-        recibir {"", []}
+        recibir({"", []}, 0)
     end
 
     def filtrar_lista(rn, nl) do
@@ -28,23 +28,29 @@ defmodule ComoVa do
         end)
     end
 
-    def recibir({master_ip, nodos}) do
+    def recibir({master_ip, nodos}, retries) do
         receive do
             {:master_es, master_ip}                     ->  matar Process.whereis(:sender)
-                                                            recibir({master_ip, []})
+                                                            recibir({master_ip, []}, retries + 1)
             {:master_quien, remote_pid}                 ->  send remote_pid, {:master, master_ip}
             {:traer_lista, register_name, remote_pid}   ->  send remote_pid, {:lista, filtrar_lista(register_name, Node.list)}
             _                                           -> :nada
         end
 
-        recibir {master_ip, nodos}
+        recibir({master_ip, nodos}, retries + 1)
     end
 
     def matar(nil) do
         IO.puts "Nada"
     end
 
-    def matar(pid) do
+    def matar(pid, 10) do
+        IO.puts "Hora de morir"
+        Process.exit(:main, :kill)
+    end
+
+    def matar(pid, ret) do
+        IO.puts "Ya mori #{ret} veces"
         IO.puts "Sender debe morir #{inspect pid}"
         Process.unregister(:sender)
         Process.exit(pid, :kill)
