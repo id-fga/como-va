@@ -51,6 +51,13 @@ defmodule ComoVa do
         end
     end
 
+    defp do_matar(p, 10) do
+        IO.puts "Tries es 10"
+        IO.puts "HARAKIRI"
+        p = Process.whereis(:main)
+        Process.exit(p, :kill)
+    end
+
     defp do_matar(p, t) do
         IO.puts "Tries es #{t}"
         IO.puts "Sender debe morir #{inspect p}"
