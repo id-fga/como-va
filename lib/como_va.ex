@@ -37,7 +37,7 @@ defmodule ComoVa do
             _                                           -> :nada
         end
 
-        recibir({master_ip, nodos}, retries + 1)
+        recibir({master_ip, nodos}, retries)
     end
 
     def matar(nil) do
