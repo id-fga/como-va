@@ -29,7 +29,6 @@ defmodule ComoVa do
     end
 
     def recibir({master_ip, nodos}, retries) do
-        IO.puts "Retries #{retries}"
         receive do
             {:master_es, master_ip}                     ->  
                                                             if matar(retries) do
