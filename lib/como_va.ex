@@ -31,8 +31,10 @@ defmodule ComoVa do
     def recibir({master_ip, nodos}, retries) do
         IO.puts "Retries #{retries}"
         receive do
-            {:master_es, master_ip}                     ->  matar(retries)
-                                                            recibir({master_ip, []}, retries + 1)
+            {:master_es, master_ip}                     ->  
+                                                            if matar(retries) do
+                                                                recibir({master_ip, []}, retries + 1)
+                                                            end
             {:master_quien, remote_pid}                 ->  send remote_pid, {:master, master_ip}
             {:traer_lista, register_name, remote_pid}   ->  send remote_pid, {:lista, filtrar_lista(register_name, Node.list)}
             _                                           -> :nada
@@ -44,7 +46,7 @@ defmodule ComoVa do
     def matar(tries) do
         :global.sync
         case Process.whereis(:sender) do
-            nil -> IO.puts "Nada"
+            nil -> false
             pid -> do_matar(pid, tries)
         end
     end
@@ -54,6 +56,7 @@ defmodule ComoVa do
         IO.puts "Sender debe morir #{inspect p}"
         Process.unregister(:sender)
         Process.exit(p, :kill)
+        true
     end
 end
 
