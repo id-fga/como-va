@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Compilo"
-#mix escript.build
+mix escript.build
 
 while true
 do
